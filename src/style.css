@@ -189,3 +189,12 @@ body {
   transform: scale(0.95);
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* Teleport Transition pre-render locking rules */
+html.teleporting #resolving-canvas {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+html.teleporting body {
+  overflow: hidden !important;
+}

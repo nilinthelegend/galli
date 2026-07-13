@@ -4,36 +4,43 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  // --- 1. Preloader Screen Animation ---
+  // --- 1. Preloader Screen Animation & Teleport Bypass ---
   const preloader = document.getElementById('preloader');
   const preloaderBar = document.getElementById('preloader-bar');
-  
-  if (preloaderBar) {
-    // Start progress loading line
-    setTimeout(() => {
-      preloaderBar.style.width = '100%';
-    }, 100);
-  }
-
   const enterBtn = document.getElementById('enter-btn');
 
-  // Once loading line finishes, fade in the Enter button
-  setTimeout(() => {
-    if (enterBtn) {
-      enterBtn.classList.remove('pointer-events-none', 'opacity-0');
-      enterBtn.classList.add('opacity-100');
-    }
-  }, 2200);
+  const urlParams = new URLSearchParams(window.location.search);
+  const isTeleport = urlParams.get('teleport') === '1';
 
-  // Enter button click: initializes sound context, plays intro sound, and dismisses preloader
-  if (enterBtn) {
-    enterBtn.addEventListener('click', () => {
-      initAudioContext();
-      playWaterDrop(250, 1100, 0.12, 0.25);
-      if (preloader) {
-        preloader.classList.add('loaded');
+  if (isTeleport && preloader) {
+    // 1. Bypass manual preloader instantly with no transition or sound
+    preloader.style.transition = 'none';
+    preloader.style.opacity = '0';
+    preloader.style.visibility = 'hidden';
+    preloader.classList.add('loaded');
+  } else {
+    // Standard Manual Preloader screen flow
+    if (preloaderBar) {
+      setTimeout(() => {
+        preloaderBar.style.width = '100%';
+      }, 100);
+    }
+    setTimeout(() => {
+      if (enterBtn) {
+        enterBtn.classList.remove('pointer-events-none', 'opacity-0');
+        enterBtn.classList.add('opacity-100');
       }
-    });
+    }, 2200);
+
+    if (enterBtn) {
+      enterBtn.addEventListener('click', () => {
+        initAudioContext();
+        playWaterDrop(250, 1100, 0.12, 0.25);
+        if (preloader) {
+          preloader.classList.add('loaded');
+        }
+      });
+    }
   }
 
 
@@ -137,8 +144,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateAudioButtonUI() {
     if (!audioToggleBtn) return;
     if (isMuted) {
-      audioIcon.setAttribute('data-lucide', 'volume-x');
-      audioStatusText.textContent = 'MUTED';
+      if (audioIcon) audioIcon.setAttribute('data-lucide', 'volume-x');
+      if (audioStatusText) audioStatusText.textContent = 'MUTED';
       audioToggleBtn.classList.add('text-stone-600');
       audioToggleBtn.classList.remove('text-gold-gold');
       const indicators = audioToggleBtn.querySelectorAll('span');
@@ -146,8 +153,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (ind.classList.contains('pulse-glow-amber')) ind.classList.add('hidden');
       });
     } else {
-      audioIcon.setAttribute('data-lucide', 'volume-2');
-      audioStatusText.textContent = 'SOUND ON';
+      if (audioIcon) audioIcon.setAttribute('data-lucide', 'volume-2');
+      if (audioStatusText) audioStatusText.textContent = 'SOUND ON';
       audioToggleBtn.classList.remove('text-stone-600');
       audioToggleBtn.classList.add('text-gold-gold');
       const indicators = audioToggleBtn.querySelectorAll('span');
@@ -225,15 +232,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- 5. Interactive Header Scroll Class ---
   const header = document.querySelector('header');
-  window.addEventListener('scroll', () => {
-    if (window.scrollY > 40) {
-      header.classList.add('bg-stone-950/95', 'py-3', 'shadow-xl');
-      header.classList.remove('bg-stone-950/75', 'py-4');
-    } else {
-      header.classList.add('bg-stone-950/75', 'py-4');
-      header.classList.remove('bg-stone-950/95', 'py-3', 'shadow-xl');
-    }
-  });
+  if (header) {
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 40) {
+        header.classList.add('bg-stone-950/95', 'py-3', 'shadow-xl');
+        header.classList.remove('bg-stone-950/75', 'py-4');
+      } else {
+        header.classList.add('bg-stone-950/75', 'py-4');
+        header.classList.remove('bg-stone-950/95', 'py-3', 'shadow-xl');
+      }
+    });
+  }
 
 
   // --- 6. Mobile Toggle Drawer ---
@@ -338,11 +347,17 @@ document.addEventListener('DOMContentLoaded', () => {
     resForm.addEventListener('submit', (event) => {
       event.preventDefault();
 
-      const name = document.getElementById('res-name').value.trim();
-      const phone = document.getElementById('res-phone').value.trim();
-      const date = document.getElementById('res-date').value;
-      const time = document.getElementById('res-time').value;
-      const guests = document.getElementById('res-guests').value;
+      const nameEl = document.getElementById('res-name');
+      const phoneEl = document.getElementById('res-phone');
+      const dateEl = document.getElementById('res-date');
+      const timeEl = document.getElementById('res-time');
+      const guestsEl = document.getElementById('res-guests');
+
+      const name = nameEl ? nameEl.value.trim() : '';
+      const phone = phoneEl ? phoneEl.value.trim() : '';
+      const date = dateEl ? dateEl.value : '';
+      const time = timeEl ? timeEl.value : '';
+      const guests = guestsEl ? guestsEl.value : '';
 
       console.log('--- BESPOKE LUXURY RESERVATION REQUESTED ---');
       console.log(`Client Name:   ${name}`);
@@ -370,4 +385,142 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // --- 8. Teleport Resolving Transition Engine ---
+  const resolvingCanvas = document.getElementById('resolving-canvas');
+  if (resolvingCanvas) {
+    let transitionFinished = false;
+
+    // Transition completion helper
+    function cleanUpTransition() {
+      if (transitionFinished) return;
+      transitionFinished = true;
+
+      // Clean up URL parameter using history replaceState
+      const cleanUrl = new URL(window.location);
+      cleanUrl.searchParams.delete('teleport');
+      window.history.replaceState({}, document.title, cleanUrl.pathname + cleanUrl.search);
+
+      // Fade canvas out and restore scroll
+      resolvingCanvas.style.opacity = '0';
+      document.documentElement.classList.remove('teleporting');
+
+      // Fully hide canvas from pointer events after transition completes
+      setTimeout(() => {
+        resolvingCanvas.style.display = 'none';
+      }, 500);
+    }
+
+    if (isTeleport) {
+      // 1. Check for reduced motion preference
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (prefersReducedMotion) {
+        // Skip animation and clean up instantly
+        cleanUpTransition();
+      } else {
+        // 2. Setup safety fallback (1.5 seconds)
+        // Ensure "teleporting" class is deleted, scroll is restored, and overlay hidden
+        const safetyTimeoutId = setTimeout(() => {
+          console.warn('Resolving animation safety fallback triggered.');
+          cleanUpTransition();
+        }, 1500);
+
+        // 3. Play warm gold restaurant converging particle animation
+        const ctx = resolvingCanvas.getContext('2d');
+        if (ctx) {
+          resolvingCanvas.width = window.innerWidth;
+          resolvingCanvas.height = window.innerHeight;
+
+          const duration = 1000; // 1 second duration
+          let startTime = null;
+
+          // Gold particle array
+          const particles = [];
+          const particleCount = 100;
+          for (let i = 0; i < particleCount; i++) {
+            particles.push({
+              x: Math.random() * resolvingCanvas.width,
+              y: Math.random() * resolvingCanvas.height,
+              targetX: resolvingCanvas.width / 2 + (Math.random() - 0.5) * 180,
+              targetY: resolvingCanvas.height / 2 + (Math.random() - 0.5) * 180,
+              size: 1 + Math.random() * 3,
+              speed: 1.5 + Math.random() * 2,
+              opacity: 0.3 + Math.random() * 0.7,
+              color: `rgba(${197 + Math.random() * 30}, ${146 + Math.random() * 25}, 46, `
+            });
+          }
+
+          function animate(timestamp) {
+            if (!startTime) startTime = timestamp;
+            const progress = timestamp - startTime;
+            const elapsedPercent = progress / duration;
+
+            // Fill obsidian background with slight alpha trail
+            ctx.fillStyle = 'rgba(8, 7, 7, 0.2)';
+            ctx.fillRect(0, 0, resolvingCanvas.width, resolvingCanvas.height);
+
+            // Draw and converge particles
+            particles.forEach(p => {
+              const dx = p.targetX - p.x;
+              const dy = p.targetY - p.y;
+              
+              p.x += dx * 0.05 * p.speed;
+              p.y += dy * 0.05 * p.speed;
+
+              const alpha = p.opacity * (1 - elapsedPercent);
+              ctx.fillStyle = p.color + `${alpha})`;
+
+              ctx.beginPath();
+              ctx.arc(p.x, p.y, p.size * (1 + elapsedPercent * 1.5), 0, Math.PI * 2);
+              ctx.fill();
+
+              ctx.shadowColor = 'rgba(197, 146, 46, 0.4)';
+              ctx.shadowBlur = p.size * 4;
+            });
+
+            // Radial golden glow in the center expanding outwards
+            const gradient = ctx.createRadialGradient(
+              resolvingCanvas.width / 2, resolvingCanvas.height / 2, 0,
+              resolvingCanvas.width / 2, resolvingCanvas.height / 2, Math.max(resolvingCanvas.width, resolvingCanvas.height) * 0.5 * elapsedPercent
+            );
+            gradient.addColorStop(0, `rgba(197, 146, 46, ${0.15 * (1 - elapsedPercent)})`);
+            gradient.addColorStop(1, 'rgba(8, 7, 7, 0)');
+            ctx.fillStyle = gradient;
+            ctx.shadowBlur = 0; // reset shadow blur
+            ctx.fillRect(0, 0, resolvingCanvas.width, resolvingCanvas.height);
+
+            if (progress < duration) {
+              animationFrameId = requestAnimationFrame(animate);
+            } else {
+              clearTimeout(safetyTimeoutId);
+              cleanUpTransition();
+            }
+          }
+
+          let animationFrameId = null;
+
+          // Handle resizing during animation
+          const resizeHandler = () => {
+            resolvingCanvas.width = window.innerWidth;
+            resolvingCanvas.height = window.innerHeight;
+          };
+          window.addEventListener('resize', resizeHandler);
+
+          const originalCleanUp = cleanUpTransition;
+          cleanUpTransition = () => {
+            window.removeEventListener('resize', resizeHandler);
+            originalCleanUp();
+          };
+
+          requestAnimationFrame(animate);
+        } else {
+          // Canvas 2d context unavailable, fallback immediately
+          cleanUpTransition();
+        }
+      }
+    } else {
+      // Direct visit, hide overlay instantly without scroll lock
+      resolvingCanvas.style.display = 'none';
+      document.documentElement.classList.remove('teleporting');
+    }
+  }
 });

@@ -25,8 +25,17 @@
 
   <!-- Tailwind stylesheet -->
   <link rel="stylesheet" href="dist/style.css">
+  <!-- Teleport pre-render FOUC blocker -->
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('teleport') === '1' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.documentElement.classList.add('teleporting');
+    }
+  </script>
 </head>
 <body class="bg-bg-dark text-text-bright font-sans antialiased">
+  <!-- Teleport Resolving Canvas Overlay -->
+  <canvas id="resolving-canvas" style="position:fixed; inset:0; z-index:9999; pointer-events:none; opacity:0; background:#080707; transition: opacity 0.5s ease;" aria-hidden="true"></canvas>
 
   <!-- Splash Screen Preloader -->
   <div id="preloader">
