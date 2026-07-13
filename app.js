@@ -4,6 +4,8 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
   // --- 1. Preloader Screen Animation ---
   const preloader = document.getElementById('preloader');
   const preloaderBar = document.getElementById('preloader-bar');
@@ -407,8 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (isTeleport) {
       // 1. Check for reduced motion preference
-      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (prefersReducedMotion) {
+      if (prefersReducedMotion.matches) {
         // Skip animation and clean up instantly
         cleanUpTransition();
       } else {
@@ -518,4 +519,316 @@ document.addEventListener('DOMContentLoaded', () => {
       document.documentElement.classList.remove('teleporting');
     }
   }
+
+  // ==========================================================================
+  // Premium Animations & Interactions Section
+  // ==========================================================================
+
+  // --- A. Menu Card Sizzle Synth & Steam Particles ---
+  const menuCards = document.querySelectorAll('.hover-glow');
+  
+  function playSizzle() {
+    if (isMuted || !audioCtx) return;
+    initAudioContext();
+    if (!audioCtx) return;
+
+    try {
+      const bufferSize = audioCtx.sampleRate * 0.4;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+
+      const noiseNode = audioCtx.createBufferSource();
+      noiseNode.buffer = buffer;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(4500, audioCtx.currentTime);
+      filter.Q.setValueAtTime(1.2, audioCtx.currentTime);
+
+      const gainNode = audioCtx.createGain();
+      gainNode.gain.setValueAtTime(0.001, audioCtx.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 0.05);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.38);
+
+      noiseNode.connect(filter);
+      filter.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      noiseNode.start();
+      noiseNode.stop(audioCtx.currentTime + 0.4);
+    } catch (e) {
+      console.warn('Sizzle synth error:', e);
+    }
+  }
+
+  menuCards.forEach(card => {
+    const steamContainer = card.querySelector('.steam-container');
+    let steamIntervalId = null;
+
+    card.addEventListener('mouseenter', () => {
+      // Play sizzle synth sound
+      playSizzle();
+
+      // Spawn steam particles if reduced motion is disabled
+      if (steamContainer && !prefersReducedMotion.matches) {
+        steamIntervalId = setInterval(() => {
+          const particle = document.createElement('span');
+          particle.className = 'steam-particle';
+          // Randomize steam origin and horizontal drift
+          particle.style.left = `${Math.random() * 80 + 10}%`;
+          particle.style.setProperty('--drift', `${(Math.random() - 0.5) * 24}px`);
+          steamContainer.appendChild(particle);
+
+          // Clean up DOM particle after animation completes
+          setTimeout(() => {
+            if (particle.parentNode === steamContainer) {
+              steamContainer.removeChild(particle);
+            }
+          }, 1600);
+        }, 220);
+      }
+    });
+
+    card.addEventListener('mouseleave', () => {
+      if (steamIntervalId) {
+        clearInterval(steamIntervalId);
+        steamIntervalId = null;
+      }
+    });
+  });
+
+  // --- B. Hero Parallax (rAF Throttled) ---
+  const heroImg = document.getElementById('hero-img');
+  if (heroImg) {
+    let ticking = false;
+
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          if (window.innerWidth >= 768 && !prefersReducedMotion.matches) {
+            const scrollY = window.scrollY;
+            heroImg.style.transform = `translateY(${scrollY * 0.16}px)`;
+          } else {
+            heroImg.style.transform = '';
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
+    });
+  }
+
+  // --- C. Flowing Navigation Underline ---
+  const navUnderline = document.getElementById('nav-underline');
+  const desktopNav = document.querySelector('nav');
+  const navLinks = desktopNav ? desktopNav.querySelectorAll('a') : [];
+
+  if (navUnderline && desktopNav && navLinks.length > 0) {
+    // Current active link tracking
+    let activeLink = desktopNav.querySelector('a[href="#home"]');
+
+    function positionUnderline(link) {
+      if (!link) {
+        navUnderline.style.width = '0px';
+        navUnderline.style.opacity = '0';
+        return;
+      }
+      navUnderline.style.opacity = '1';
+      navUnderline.style.left = `${link.offsetLeft}px`;
+      navUnderline.style.width = `${link.offsetWidth}px`;
+    }
+
+    // Set initial position
+    setTimeout(() => {
+      // Find active link matching current hash or fallback to #home
+      const currentHash = window.location.hash || '#home';
+      activeLink = desktopNav.querySelector(`a[href="${currentHash}"]`) || navLinks[0];
+      positionUnderline(activeLink);
+    }, 500);
+
+    navLinks.forEach(link => {
+      link.addEventListener('mouseenter', () => {
+        positionUnderline(link);
+      });
+
+      link.addEventListener('mouseleave', () => {
+        // Fallback back to current active link on mouse leaves
+        positionUnderline(activeLink);
+      });
+    });
+
+    // Update active underline on hash changes / scroll updates
+    const headerObserver = new MutationObserver(() => {
+      const newActive = desktopNav.querySelector('a.text-text-bright');
+      if (newActive && newActive !== activeLink) {
+        activeLink = newActive;
+        positionUnderline(activeLink);
+      }
+    });
+
+    headerObserver.observe(desktopNav, {
+      attributes: true,
+      subtree: true,
+      attributeFilter: ['class']
+    });
+
+    // Handle resize adjustments
+    window.addEventListener('resize', () => {
+      positionUnderline(activeLink);
+    });
+  }
+
+  // --- D. Ambient Floating Particles (Hero Canvas) ---
+  const heroCanvas = document.getElementById('hero-particles');
+  if (heroCanvas) {
+    const ctx = heroCanvas.getContext('2d');
+    let particles = [];
+    let animationFrameId = null;
+
+    function resizeCanvas() {
+      if (heroCanvas && heroCanvas.parentElement) {
+        heroCanvas.width = heroCanvas.parentElement.offsetWidth;
+        heroCanvas.height = heroCanvas.parentElement.offsetHeight;
+      }
+    }
+
+    class GoldParticle {
+      constructor() {
+        this.reset(true);
+      }
+
+      reset(init = false) {
+        this.x = Math.random() * heroCanvas.width;
+        this.y = init ? Math.random() * heroCanvas.height : heroCanvas.height + 10;
+        this.size = 1 + Math.random() * 4;
+        this.speedY = 0.2 + Math.random() * 0.4;
+        this.speedX = (Math.random() - 0.5) * 0.15;
+        this.opacity = 0.1 + Math.random() * 0.4;
+      }
+
+      update() {
+        this.y -= this.speedY;
+        this.x += this.speedX;
+        
+        // Soft swaying drift
+        this.speedX += (Math.random() - 0.5) * 0.02;
+        this.speedX = Math.max(-0.25, Math.min(0.25, this.speedX));
+
+        if (this.y < -10 || this.x < -10 || this.x > heroCanvas.width + 10) {
+          this.reset(false);
+        }
+      }
+
+      draw() {
+        ctx.fillStyle = `rgba(197, 146, 46, ${this.opacity})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function initParticles() {
+      particles = [];
+      // Mobile-specific performance reduction: screens < 768px run 4 particles, desktop runs 18
+      const count = window.innerWidth < 768 ? 4 : 18;
+      for (let i = 0; i < count; i++) {
+        particles.push(new GoldParticle());
+      }
+    }
+
+    function drawLoop() {
+      ctx.clearRect(0, 0, heroCanvas.width, heroCanvas.height);
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      animationFrameId = requestAnimationFrame(drawLoop);
+    }
+
+    function startBokeh() {
+      const isReduced = prefersReducedMotion.matches;
+      // Completely disable particles if reduced motion is enabled
+      if (isReduced) {
+        ctx.clearRect(0, 0, heroCanvas.width, heroCanvas.height);
+        return;
+      }
+      resizeCanvas();
+      initParticles();
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      drawLoop();
+    }
+
+    window.addEventListener('resize', () => {
+      resizeCanvas();
+      initParticles();
+    });
+
+    // Pause canvas processing when tab is invisible
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      } else {
+        startBokeh();
+      }
+    });
+
+    startBokeh();
+  }
+
+  // --- E. Staggered Heading Reveal System ---
+  const staggerHeadings = document.querySelectorAll('.reveal-stagger');
+  staggerHeadings.forEach(heading => {
+    const text = heading.textContent.trim();
+    heading.innerHTML = ''; // Clear text
+    
+    // Split into individual words
+    const words = text.split(' ');
+    words.forEach((word, index) => {
+      const span = document.createElement('span');
+      span.className = 'stagger-word';
+      span.textContent = word;
+      heading.appendChild(span);
+      
+      // Inject incremental delay style rules
+      span.style.transitionDelay = `${index * 0.08}s`;
+
+      // Retain space between words
+      if (index < words.length - 1) {
+        heading.appendChild(document.createTextNode(' '));
+      }
+    });
+  });
+
+  // Re-register staggerHeadings to scroll reveal observer
+  const staggerObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('active');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, {
+    threshold: 0.05,
+    rootMargin: '0px 0px -40px 0px'
+  });
+
+  staggerHeadings.forEach(el => {
+    // Add reveal-item container trigger behaviour
+    el.classList.add('reveal-item');
+    staggerObserver.observe(el);
+  });
+
+  // --- F. Subtle Glow Pulse Accent Bindings ---
+  // Inject glow pulsing animations to gold utensil icons and design separators
+  const goldAccents = document.querySelectorAll('.text-gold-gold, .bg-gold-gold, .border-gold-gold');
+  goldAccents.forEach(accent => {
+    // Exclude links and interactive form elements to avoid distracting hover loops
+    if (accent.tagName !== 'A' && accent.tagName !== 'BUTTON' && accent.tagName !== 'SPAN') {
+      accent.classList.add('gold-accent-pulse');
+    }
+  });
+
 });

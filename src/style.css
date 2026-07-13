@@ -198,3 +198,141 @@ html.teleporting #resolving-canvas {
 html.teleporting body {
   overflow: hidden !important;
 }
+
+/* ==========================================================================
+   Premium Animations & Interactions Section
+   ========================================================================== */
+
+/* 1. Menu Card Hover & Steam Particles */
+.hover-glow:hover {
+  border-color: rgba(197, 146, 46, 0.45) !important;
+  box-shadow: 0 16px 40px -10px rgba(197, 146, 46, 0.2) !important;
+}
+
+.steam-particle {
+  position: absolute;
+  bottom: 0;
+  width: 5px;
+  height: 5px;
+  background: rgba(229, 216, 194, 0.35);
+  border-radius: 50%;
+  filter: blur(2px);
+  animation: riseAndFade 1.6s forwards linear;
+  pointer-events: none;
+  z-index: 25;
+}
+
+@keyframes riseAndFade {
+  0% {
+    transform: translateY(0) scale(1) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-90px) scale(2.8) translateX(var(--drift, 12px));
+    opacity: 0;
+  }
+}
+
+/* 2. Price Reveal Animation */
+.reveal-scale .price-reveal {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: 0.35s;
+}
+
+.reveal-scale.active .price-reveal {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 5. Reservation Success Checkmark Drawing */
+.success-checkmark {
+  display: block;
+}
+
+.success-checkmark .checkmark-circle {
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  stroke-width: 2;
+  stroke-miterlimit: 10;
+  animation: strokeCircle 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.success-checkmark .checkmark-check {
+  transform-origin: 50% 50%;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: strokeCheck 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards;
+}
+
+@keyframes strokeCircle {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes strokeCheck {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* 7. Staggered Heading Reveal */
+.stagger-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-item.active .stagger-word {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 8. Subtle Candle-flicker Accent Pulse */
+@keyframes goldAccentPulse {
+  0%, 100% {
+    opacity: 0.85;
+    filter: drop-shadow(0 0 1px var(--color-gold-gold));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 4px var(--color-gold-gold));
+  }
+}
+
+.gold-accent-pulse {
+  animation: goldAccentPulse 6s infinite ease-in-out;
+}
+
+/* Prefers Reduced Motion Accessibility Override */
+@media (prefers-reduced-motion: reduce) {
+  .steam-particle {
+    display: none !important;
+  }
+  .reveal-scale .price-reveal {
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .success-checkmark .checkmark-circle,
+  .success-checkmark .checkmark-check {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+  .stagger-word {
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .gold-accent-pulse {
+    animation: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+  }
+}
