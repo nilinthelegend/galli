@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galli Cafe & Restro // Architectural Luxury Dining</title>
+  
+  <!-- SEO Optimization -->
+  <meta name="description" content="Discover Galli Cafe & Restro, an architectural dining sanctuary in Kathmandu, Nepal. Experience authentic flavors, a cozy courtyard, and custom synthesized liquid soundscapes.">
+  <meta name="keywords" content="Luxury Cafe Kathmandu, Galli Cafe Restro, Lazimpat Dining, Courtyard Restaurant Kathmandu, Fine Dining Nepal">
+  <meta name="author" content="Galli Cafe & Restro">
+
+  <!-- OpenGraph Metadata -->
+  <meta property="og:title" content="Galli Cafe & Restro // Architectural Luxury Dining">
+  <meta property="og:description" content="Immerse yourself in authentic Nepalese dining and luxury soundscapes. Reserve your table today.">
+  <meta property="og:type" content="website">
+
+  <!-- Typography (Playfair Serif & Plus Jakarta Sans) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Tailwind stylesheet -->
+  <link rel="stylesheet" href="dist/style.css">
+</head>
+<body class="bg-bg-dark text-text-bright font-sans antialiased">
+
+  <!-- Splash Screen Preloader -->
+  <div id="preloader">
+    <div class="flex flex-col items-center">
+      <i data-lucide="utensils" class="w-10 h-10 text-gold-gold animate-pulse"></i>
+      <span class="font-heading font-bold text-2xl tracking-widest text-text-bright mt-3">GALLI</span>
+      <span class="text-[9px] tracking-[0.3em] font-semibold text-gold-gold uppercase mt-1">CAFE & RESTRO</span>
+    </div>
+    <div class="loader-bar-bg mb-8">
+      <div class="loader-bar" id="preloader-bar"></div>
+    </div>
+    <!-- Enter Sanctuary Button: Establishes the browser user gesture for AudioContext -->
+    <button id="enter-btn" class="opacity-0 pointer-events-none transition-all duration-700 px-6 py-2.5 border border-gold-gold text-gold-gold hover:bg-gold-gold/10 font-bold text-[10px] tracking-widest uppercase rounded sound-trigger" data-sound="droplet">
+      ENTER SANCTUARY
+    </button>
+  </div>
+
+  <!-- Custom gold mouse cursor (hidden on screens under 1024px) -->
+  <div id="custom-cursor" class="pointer-events-none">
+    <!-- SVG Arrow: Gold Fill with Black Stroke -->
+    <svg class="absolute w-[22px] h-[22px] -left-1.5 -top-1.5 pointer-events-none" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4.5 3V19L9.2 14.3L14.7 21L17.5 19.2L12 12.5L18.2 12.5L4.5 3Z" fill="#c5922e" stroke="#080707" stroke-width="1.8" stroke-linejoin="round"/>
+    </svg>
+    <!-- Hover Expansion Ring -->
+    <div id="cursor-ring" class="absolute w-0 h-0 border border-gold-gold rounded-full -translate-x-1/2 -translate-y-1/2 opacity-0 pointer-events-none transition-all duration-300"></div>
+  </div>
+
+  <!-- Top Sticky Navigation Header -->
+  <header class="sticky top-0 z-50 w-full bg-stone-950/75 backdrop-blur-md border-b border-border-dim transition-all duration-500">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <a href="#home" class="flex flex-col items-center text-center group cursor-pointer sound-trigger" data-sound="droplet">
+        <i data-lucide="utensils" class="w-5 h-5 text-gold-gold group-hover:scale-110 transition-all duration-300"></i>
+        <span class="font-heading font-bold text-lg tracking-widest text-text-bright leading-none mt-1">GALLI</span>
+        <span class="text-[8px] tracking-[0.2em] font-semibold text-gold-gold leading-none mt-1 uppercase">Cafe & Restro</span>
+      </a>
+
+      <!-- Desktop Navigation Anchors -->
+      <nav class="hidden md:flex items-center gap-8 text-[11px] tracking-widest uppercase font-bold" aria-label="Desktop Navigation">
+        <a href="#home" class="text-text-bright hover:text-gold-gold transition-colors sound-trigger" data-sound="droplet">HOME</a>
+        <a href="#about-philosophy" class="text-text-muted hover:text-gold-gold transition-colors sound-trigger" data-sound="droplet">PHILOSOPHY</a>
+        <a href="#menu" class="text-text-muted hover:text-gold-gold transition-colors sound-trigger" data-sound="droplet">MENU</a>
+        <a href="#gallery" class="text-text-muted hover:text-gold-gold transition-colors sound-trigger" data-sound="droplet">GALLERY</a>
+        <a href="#reviews" class="text-text-muted hover:text-gold-gold transition-colors sound-trigger" data-sound="droplet">REVIEWS</a>
+        <a href="#contact" class="text-text-muted hover:text-gold-gold transition-colors sound-trigger" data-sound="droplet">CONTACT</a>
+      </nav>
+
+      <!-- Right Header Actions (Mute toggle & Reservation trigger) -->
+      <div class="flex items-center gap-4">
+        
+        <!-- Audio Synthesizer toggle button -->
+        <button id="audio-toggle-btn" class="p-2.5 rounded-lg border border-border-dim hover:border-gold-gold text-gold-gold transition-all duration-300 flex items-center justify-center gap-1.5 relative overflow-hidden" aria-label="Toggle Soundscapes">
+          <i data-lucide="volume-2" id="audio-icon" class="w-4 h-4"></i>
+          <span id="audio-status-text" class="text-[8px] tracking-widest font-black hidden sm:inline uppercase">SOUND ON</span>
+          <span class="absolute right-1 top-1 w-1.5 h-1.5 rounded-full bg-gold-gold pulse-glow-amber"></span>
+        </button>
+
+        <a href="#reservation" class="hidden md:inline-block px-5 py-2 text-[10px] tracking-widest font-bold rounded-md border border-gold-gold text-gold-gold hover:bg-gold-gold/10 transition-all duration-300 uppercase sound-trigger" data-sound="droplet">
+          RESERVATION
+        </a>
+
+        <!-- Mobile Drawer Toggle -->
+        <button id="mobile-menu-btn" class="md:hidden flex items-center p-2 rounded-lg text-text-bright hover:bg-stone-900 transition-colors" aria-label="Toggle Mobile Menu">
+          <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Mobile Drawer Container -->
+    <div id="mobile-drawer" class="hidden md:hidden w-full bg-stone-950 border-t border-border-dim py-6 px-6 flex flex-col gap-5 text-[11px] tracking-widest uppercase font-bold animate-fadeIn">
+      <a href="#home" class="mobile-nav-link text-text-bright hover:text-gold-gold py-1 sound-trigger" data-sound="droplet">HOME</a>
+      <a href="#about-philosophy" class="mobile-nav-link text-text-muted hover:text-gold-gold py-1 sound-trigger" data-sound="droplet">PHILOSOPHY</a>
+      <a href="#menu" class="mobile-nav-link text-text-muted hover:text-gold-gold py-1 sound-trigger" data-sound="droplet">MENU</a>
+      <a href="#gallery" class="mobile-nav-link text-text-muted hover:text-gold-gold py-1 sound-trigger" data-sound="droplet">GALLERY</a>
+      <a href="#reviews" class="mobile-nav-link text-text-muted hover:text-gold-gold py-1 sound-trigger" data-sound="droplet">REVIEWS</a>
+      <a href="#contact" class="mobile-nav-link text-text-muted hover:text-gold-gold py-1 sound-trigger" data-sound="droplet">CONTACT</a>
+      <a href="#reservation" class="mobile-nav-link w-full text-center py-3 rounded-md bg-gold-gold text-stone-950 font-bold text-[10px] mt-2 transition-colors sound-trigger" data-sound="droplet">
+        RESERVATION
+      </a>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section id="home" class="relative min-h-[92vh] flex items-center justify-center py-24 px-6 overflow-hidden">
+    
+    <!-- Hero Background Image (Buddha Mural) -->
+    <div class="absolute inset-0 z-0 bg-stone-950 overflow-hidden">
+      <div class="absolute inset-0 bg-gradient-to-b from-stone-950/40 via-stone-950/70 to-bg-dark z-10"></div>
+      <img src="assets/hero-bg.jpg" alt="Cozy Dining Ambience" class="w-full h-full object-cover opacity-35 object-center hover-zoom" id="hero-img">
+    </div>
+
+    <!-- Hero Content Overlay -->
+    <div class="max-w-4xl mx-auto text-center z-10 flex flex-col items-center">
+      
+      <!-- Cursive Script Tagline -->
+      <span class="font-script text-3xl md:text-5xl text-gold-gold tracking-wide mb-3 block reveal-item delay-100">
+        Welcome to
+      </span>
+
+      <!-- Bold Serif split Headline -->
+      <h1 class="font-heading text-5xl sm:text-7xl md:text-9xl font-bold tracking-tight text-text-bright mb-8 max-w-5xl leading-[1.02] reveal-item delay-200">
+        Galli Cafe<br>& Restro
+      </h1>
+
+      <!-- Subtext -->
+      <p class="text-xs sm:text-sm md:text-base text-text-muted max-w-xl mb-12 tracking-[0.25em] font-sans uppercase reveal-item delay-300 leading-relaxed">
+        GOOD FOOD. GOOD VIBES. GREAT MEMORIES.
+      </p>
+
+      <!-- Luxury CTA buttons -->
+      <div class="flex flex-col sm:flex-row gap-5 w-full sm:w-auto font-bold tracking-widest text-[11px] reveal-item delay-400">
+        <a href="#menu" class="px-7 py-4 rounded-md bg-gold-gold hover:bg-gold-hover text-stone-950 transition-all duration-300 shadow-lg shadow-gold-gold/10 hover:scale-103 sound-trigger" data-sound="droplet">
+          VIEW MENU
+        </a>
+        <a href="#reservation" class="px-7 py-4 rounded-md border border-gold-gold text-text-bright hover:bg-gold-gold/10 transition-all duration-300 hover:scale-103 sound-trigger" data-sound="droplet">
+          RESERVE A TABLE
+        </a>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- Architectural Philosophy (Section 2 - NEW) -->
+  <section id="about-philosophy" class="py-36 px-6 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center scroll-mt-20">
+    
+    <!-- Narrative Column -->
+    <div class="flex flex-col gap-6 reveal-item">
+      <span class="text-xs font-bold text-gold-gold uppercase tracking-widest flex items-center gap-1.5">
+        <i data-lucide="home" class="w-4 h-4 text-gold-gold"></i> Architectural Sanctuary
+      </span>
+      <h2 class="font-heading text-3xl sm:text-5xl font-bold text-text-bright leading-tight">
+        Designed to Escape the Noise
+      </h2>
+      <div class="w-12 h-[1px] bg-gold-gold"></div>
+      
+      <p class="text-xs sm:text-sm text-text-muted leading-relaxed max-w-lg">
+        Tucked inside a quiet courtyard off the streets of Lazimpat, Kathmandu, Galli Cafe & Restro is built with architectural intention. Concrete textures, wooden bar counter accents, and warm low-hanging Edison bulbs are balanced by a massive blue Buddha mural.
+      </p>
+      
+      <p class="text-xs sm:text-sm text-text-muted leading-relaxed max-w-lg">
+        This is not just a room to eat; it is a physical retreat designed to make dining organic, spacious, and visually serene. We invite you to sit back, feel the ambient soundscapes, and share food crafted with passion.
+      </p>
+    </div>
+
+    <!-- Frame Column -->
+    <div class="relative group w-full max-w-xl mx-auto reveal-scale delay-200">
+      <div class="absolute -inset-2 bg-gradient-to-tr from-gold-gold/20 to-transparent rounded-2xl blur-xl opacity-30 group-hover:opacity-55 transition-opacity"></div>
+      <div class="relative h-[300px] sm:h-[380px] bg-stone-900/60 border border-stone-850 rounded-2xl overflow-hidden flex items-center justify-center border-r-2 border-b-2 border-gold-gold/30 shadow-2xl">
+        <span class="absolute text-stone-600 text-[10px] font-bold uppercase tracking-wider">[ Courtyard Design Banner ]</span>
+        <img src="assets/about-banner.jpg" alt="Courtyard Design" class="w-full h-full object-cover group-hover:scale-103 transition-transform duration-700 z-10" onerror="this.style.opacity='0'">
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Specialties Section (Section 3) -->
+  <section id="menu" class="py-36 px-6 max-w-7xl mx-auto border-t border-border-dim scroll-mt-20">
+    
+    <!-- Section Header -->
+    <div class="text-center mb-20 flex flex-col items-center reveal-item">
+      <h2 class="font-heading text-2xl sm:text-3xl md:text-4xl font-bold text-gold-gold tracking-widest uppercase">Our Specialties</h2>
+      <div class="flex items-center justify-center gap-4 w-full max-w-xs mt-4">
+        <div class="h-[1px] bg-border-dim flex-grow"></div>
+        <i data-lucide="utensils" class="w-4.5 h-4.5 text-gold-gold"></i>
+        <div class="h-[1px] bg-border-dim flex-grow"></div>
+      </div>
+    </div>
+
+    <!-- Grid Layout -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      
+      <!-- Card 1: Chicken Momo -->
+      <div class="group border border-border-dim p-4 rounded-xl flex flex-col items-center text-center gap-4 hover-glow hover:-translate-y-1 transition-all duration-500 reveal-scale delay-100 sound-trigger" data-sound="droplet">
+        <div class="w-full h-44 rounded-lg overflow-hidden relative flex items-center justify-center bg-stone-900/40">
+          <span class="absolute text-stone-600 text-[10px] font-bold uppercase tracking-wider text-center p-2">[ Chicken Momo ]</span>
+          <img src="assets/momo.jpg" alt="Chicken Momo" class="w-full h-full object-cover hover-zoom z-10" onerror="this.style.opacity='0'">
+        </div>
+        <div class="flex flex-col items-center gap-1.5 mt-1">
+          <h3 class="font-heading font-semibold text-base text-text-bright group-hover:text-gold-gold transition-colors">Chicken Momo</h3>
+          <span class="text-xs font-bold text-gold-gold">Rs. 280</span>
+        </div>
+      </div>
+
+      <!-- Card 2: Thukpa -->
+      <div class="group border border-border-dim p-4 rounded-xl flex flex-col items-center text-center gap-4 hover-glow hover:-translate-y-1 transition-all duration-500 reveal-scale delay-200 sound-trigger" data-sound="droplet">
+        <div class="w-full h-44 rounded-lg overflow-hidden relative flex items-center justify-center bg-stone-900/40">
+          <span class="absolute text-stone-600 text-[10px] font-bold uppercase tracking-wider text-center p-2">[ Thukpa Soup ]</span>
+          <img src="assets/thukpa.jpg" alt="Thukpa" class="w-full h-full object-cover hover-zoom z-10" onerror="this.style.opacity='0'">
+        </div>
+        <div class="flex flex-col items-center gap-1.5 mt-1">
+          <h3 class="font-heading font-semibold text-base text-text-bright group-hover:text-gold-gold transition-colors">Thukpa</h3>
+          <span class="text-xs font-bold text-gold-gold">Rs. 320</span>
+        </div>
+      </div>
+
+      <!-- Card 3: Chilli Chicken -->
+      <div class="group border border-border-dim p-4 rounded-xl flex flex-col items-center text-center gap-4 hover-glow hover:-translate-y-1 transition-all duration-500 reveal-scale delay-300 sound-trigger" data-sound="droplet">
+        <div class="w-full h-44 rounded-lg overflow-hidden relative flex items-center justify-center bg-stone-900/40">
+          <span class="absolute text-stone-600 text-[10px] font-bold uppercase tracking-wider text-center p-2">[ Chilli Chicken ]</span>
+          <img src="assets/chilli-chicken.jpg" alt="Chilli Chicken" class="w-full h-full object-cover hover-zoom z-10" onerror="this.style.opacity='0'">
+        </div>
+        <div class="flex flex-col items-center gap-1.5 mt-1">
+          <h3 class="font-heading font-semibold text-base text-text-bright group-hover:text-gold-gold transition-colors">Chilli Chicken</h3>
+          <span class="text-xs font-bold text-gold-gold">Rs. 450</span>
+        </div>
+      </div>
+
+      <!-- Card 4: Galli Special Burger -->
+      <div class="group border border-border-dim p-4 rounded-xl flex flex-col items-center text-center gap-4 hover-glow hover:-translate-y-1 transition-all duration-500 reveal-scale delay-400 sound-trigger" data-sound="droplet">
+        <div class="w-full h-44 rounded-lg overflow-hidden relative flex items-center justify-center bg-stone-900/40">
+          <span class="absolute text-stone-600 text-[10px] font-bold uppercase tracking-wider text-center p-2">[ Special Burger ]</span>
+          <img src="assets/burger.jpg" alt="Galli Special Burger" class="w-full h-full object-cover hover-zoom z-10" onerror="this.style.opacity='0'">
+        </div>
+        <div class="flex flex-col items-center gap-1.5 mt-1">
+          <h3 class="font-heading font-semibold text-base text-text-bright group-hover:text-gold-gold transition-colors">Special Burger</h3>
+          <span class="text-xs font-bold text-gold-gold">Rs. 380</span>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- The Ingredients Sanctuary (Section 4 - NEW) -->
+  <section class="py-36 px-6 bg-stone-950/20 border-t border-border-dim">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-12">
+      
+      <!-- Detail 1 -->
+      <div class="flex flex-col gap-3.5 p-6 rounded-xl border border-border-dim hover-glow transition-all duration-500 reveal-item delay-100">
+        <span class="text-xs font-bold text-gold-gold uppercase tracking-wider">// 01 // Fresh Herbs</span>
+        <h3 class="font-heading font-bold text-xl text-text-bright">Himalayan Spices</h3>
+        <p class="text-xs text-text-muted leading-relaxed">
+          We source organic mountain garlic, hand-pressed ginger, and signature Nepalese spices daily to craft the unique flavor profiles of our broths.
+        </p>
+      </div>
+
+      <!-- Detail 2 -->
+      <div class="flex flex-col gap-3.5 p-6 rounded-xl border border-border-dim hover-glow transition-all duration-500 reveal-item delay-200">
+        <span class="text-xs font-bold text-gold-gold uppercase tracking-wider">// 02 // Dipping Chutney</span>
+        <h3 class="font-heading font-bold text-xl text-text-bright">Roasted Sesame Blend</h3>
+        <p class="text-xs text-text-muted leading-relaxed">
+          Our sesame Momos chutney is roasted slowly from scratch, grinding dry red peppers and raw seeds to form a smooth cream dipping texture.
+        </p>
+      </div>
+
+      <!-- Detail 3 -->
+      <div class="flex flex-col gap-3.5 p-6 rounded-xl border border-border-dim hover-glow transition-all duration-500 reveal-item delay-300">
+        <span class="text-xs font-bold text-gold-gold uppercase tracking-wider">// 03 // Local Sourcing</span>
+        <h3 class="font-heading font-bold text-xl text-text-bright">Vegetables & Poultry</h3>
+        <p class="text-xs text-text-muted leading-relaxed">
+          Partnerships with organic valley farms around Kathmandu ensure fresh greens and high-quality chicken are delivered straight to our kitchen doors.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Luxurious Asymmetrical Photo Gallery (Section 5) -->
+  <section id="gallery" class="py-36 px-6 max-w-7xl mx-auto border-t border-border-dim scroll-mt-20">
+    
+    <!-- Section Header -->
+    <div class="text-center mb-20 flex flex-col items-center reveal-item">
+      <h2 class="font-heading text-2xl sm:text-3xl md:text-4xl font-bold text-gold-gold tracking-widest uppercase">Atmosphere & Artistry</h2>
+      <div class="flex items-center justify-center gap-4 w-full max-w-xs mt-4">
+        <div class="h-[1px] bg-border-dim flex-grow"></div>
+        <i data-lucide="image" class="w-4.5 h-4.5 text-gold-gold"></i>
+        <div class="h-[1px] bg-border-dim flex-grow"></div>
+      </div>
+    </div>
+
+    <!-- Asymmetrical Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-[220px]">
+      
+      <!-- Box 1: Large Interior (Spans 2 rows) -->
+      <div class="lg:col-span-2 lg:row-span-2 group relative overflow-hidden rounded-2xl border border-border-dim reveal-scale sound-trigger" data-sound="droplet">
+        <div class="absolute inset-0 bg-stone-950/40 group-hover:bg-stone-950/10 transition-colors duration-500 z-10"></div>
+        <span class="absolute text-stone-600 text-xs font-bold uppercase tracking-widest p-4 top-2 left-2 z-20 bg-stone-950/80 rounded">// Dining Ambience</span>
+        <img src="assets/about-vertical.jpg" alt="Luxury Dining Room" class="w-full h-full object-cover hover-zoom" onerror="this.style.opacity='0'">
+        <div class="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-stone-950 via-stone-950/60 to-transparent z-20 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <span class="text-xs font-bold text-gold-gold tracking-wider uppercase mb-1">Architectural Sanctuary</span>
+          <p class="text-[10px] text-text-muted">A harmonious blend of warm lights, concrete walls, and traditional art.</p>
+        </div>
+      </div>
+
+      <!-- Box 2: Cocktail Mojito -->
+      <div class="group relative overflow-hidden rounded-2xl border border-border-dim reveal-scale delay-100 sound-trigger" data-sound="droplet">
+        <div class="absolute inset-0 bg-stone-950/40 group-hover:bg-stone-950/10 transition-colors duration-500 z-10"></div>
+        <span class="absolute text-stone-600 text-[10px] font-bold uppercase tracking-widest p-2 top-2 left-2 z-20 bg-stone-950/80 rounded">// Signature Cocktail</span>
+        <img src="assets/mojito.jpg" alt="Mojito cocktail" class="w-full h-full object-cover hover-zoom" onerror="this.style.opacity='0'">
+      </div>
+
+      <!-- Box 3: Spicy Noodles (Spans 2 rows on lg) -->
+      <div class="lg:row-span-2 group relative overflow-hidden rounded-2xl border border-border-dim reveal-scale delay-200 sound-trigger" data-sound="droplet">
+        <div class="absolute inset-0 bg-stone-950/40 group-hover:bg-stone-950/10 transition-colors duration-500 z-10"></div>
+        <span class="absolute text-stone-600 text-[10px] font-bold uppercase tracking-widest p-2 top-2 left-2 z-20 bg-stone-950/80 rounded">// Wok-Fried Flavors</span>
+        <img src="assets/noodles.jpg" alt="Spicy noodles" class="w-full h-full object-cover hover-zoom" onerror="this.style.opacity='0'">
+      </div>
+
+      <!-- Box 4: Sofa Lounge Seating -->
+      <div class="group relative overflow-hidden rounded-2xl border border-border-dim reveal-scale delay-300 sound-trigger" data-sound="droplet">
+        <div class="absolute inset-0 bg-stone-950/40 group-hover:bg-stone-950/10 transition-colors duration-500 z-10"></div>
+        <span class="absolute text-stone-600 text-[10px] font-bold uppercase tracking-widest p-2 top-2 left-2 z-20 bg-stone-950/80 rounded">// Lounge Corner</span>
+        <img src="assets/sofa.jpg" alt="Cozy seating" class="w-full h-full object-cover hover-zoom" onerror="this.style.opacity='0'">
+      </div>
+
+      <!-- Box 5: Bar Counter -->
+      <div class="group lg:col-span-2 relative overflow-hidden rounded-2xl border border-border-dim reveal-scale delay-400 sound-trigger" data-sound="droplet">
+        <div class="absolute inset-0 bg-stone-950/40 group-hover:bg-stone-950/10 transition-colors duration-500 z-10"></div>
+        <span class="absolute text-stone-600 text-[10px] font-bold uppercase tracking-widest p-2 top-2 left-2 z-20 bg-stone-950/80 rounded">// Bar Counter</span>
+        <img src="assets/bar-counter.jpg" alt="Wooden bar" class="w-full h-full object-cover hover-zoom" onerror="this.style.opacity='0'">
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- Features Strip (Section 6) -->
+  <section class="border-y border-border-dim py-16 px-6 bg-stone-950/20 reveal-fade">
+    <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-6">
+      
+      <!-- Feature 1 -->
+      <div class="flex flex-col items-center text-center p-4 group sound-trigger" data-sound="droplet">
+        <div class="w-12 h-12 rounded-xl bg-gold-gold/10 border border-gold-gold/20 flex items-center justify-center mb-4 group-hover:bg-gold-gold group-hover:text-stone-950 transition-all duration-300">
+          <i data-lucide="chef-hat" class="w-6 h-6 text-gold-gold group-hover:text-stone-950 transition-colors"></i>
+        </div>
+        <h3 class="font-heading font-bold text-xs text-gold-gold uppercase tracking-widest mb-2">QUALITY FOOD</h3>
+        <p class="text-xs text-text-muted max-w-[200px]">Fresh ingredients and expert chefs</p>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="flex flex-col items-center text-center p-4 group sound-trigger" data-sound="droplet">
+        <div class="w-12 h-12 rounded-xl bg-gold-gold/10 border border-gold-gold/20 flex items-center justify-center mb-4 group-hover:bg-gold-gold group-hover:text-stone-950 transition-all duration-300">
+          <i data-lucide="coffee" class="w-6 h-6 text-gold-gold group-hover:text-stone-950 transition-colors"></i>
+        </div>
+        <h3 class="font-heading font-bold text-xs text-gold-gold uppercase tracking-widest mb-2">COZY AMBIENCE</h3>
+        <p class="text-xs text-text-muted max-w-[200px]">Relax and enjoy our warm atmosphere</p>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="flex flex-col items-center text-center p-4 group sound-trigger" data-sound="droplet">
+        <div class="w-12 h-12 rounded-xl bg-gold-gold/10 border border-gold-gold/20 flex items-center justify-center mb-4 group-hover:bg-gold-gold group-hover:text-stone-950 transition-all duration-300">
+          <i data-lucide="heart" class="w-6 h-6 text-gold-gold group-hover:text-stone-950 transition-colors"></i>
+        </div>
+        <h3 class="font-heading font-bold text-xs text-gold-gold uppercase tracking-widest mb-2">GREAT SERVICE</h3>
+        <p class="text-xs text-text-muted max-w-[200px]">Friendly staff and quick service</p>
+      </div>
+
+      <!-- Feature 4 -->
+      <div class="flex flex-col items-center text-center p-4 group sound-trigger" data-sound="droplet">
+        <div class="w-12 h-12 rounded-xl bg-gold-gold/10 border border-gold-gold/20 flex items-center justify-center mb-4 group-hover:bg-gold-gold group-hover:text-stone-950 transition-all duration-300">
+          <i data-lucide="tag" class="w-6 h-6 text-gold-gold group-hover:text-stone-950 transition-colors"></i>
+        </div>
+        <h3 class="font-heading font-bold text-xs text-gold-gold uppercase tracking-widest mb-2">BEST PRICES</h3>
+        <p class="text-xs text-text-muted max-w-[200px]">Quality food at reasonable prices</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Bottom Information Grid (Section 7, 8 & 9 combined) -->
+  <section class="py-32 px-6 bg-stone-950/10 border-t border-border-dim scroll-mt-20">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- Column 1: About Us (lg:col-span-5) -->
+      <div id="about" class="lg:col-span-5 flex flex-col gap-5 scroll-mt-20 reveal-item">
+        <h3 class="font-heading text-lg font-bold text-gold-gold tracking-widest uppercase">About Us</h3>
+        <div class="flex flex-col md:flex-row gap-6 items-start">
+          <div class="flex-1 flex flex-col gap-4">
+            <p class="text-xs text-text-muted leading-relaxed">
+              Galli Cafe & Restro is a cozy place in the heart of Kathmandu where great food, good music and warm hospitality come together. Whether it's coffee with friends or a family dinner, we make every moment special.
+            </p>
+            <a href="#about" class="w-fit px-4 py-2 rounded-md border border-gold-gold text-gold-gold text-[10px] tracking-widest font-bold hover:bg-gold-gold/10 transition-colors uppercase sound-trigger" data-sound="droplet">
+              LEARN MORE
+            </a>
+          </div>
+          <div class="w-full md:w-36 h-48 bg-stone-900/60 border border-stone-850 rounded-xl overflow-hidden flex items-center justify-center border-l-2 border-b-2 border-gold-gold/30 flex-shrink-0 shadow-md relative group">
+            <span class="absolute text-stone-600 text-[10px] font-semibold uppercase tracking-wider text-center p-2 z-0">[ Interior ]</span>
+            <img src="assets/about-vertical.jpg" alt="Interior Seating" class="w-full h-full object-cover hover-zoom z-10" onerror="this.style.opacity='0'">
+          </div>
+        </div>
+      </div>
+
+      <!-- Column 2: Make a Reservation (lg:col-span-3) -->
+      <div id="reservation" class="lg:col-span-3 flex flex-col gap-5 scroll-mt-20 reveal-item delay-100">
+        <h3 class="font-heading text-lg font-bold text-gold-gold tracking-widest uppercase">Make a Reservation</h3>
+        <div class="bg-bg-card/45 border border-stone-900/80 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+          <form id="reservation-form" class="flex flex-col gap-4 text-xs">
+            <input type="text" id="res-name" placeholder="Your Name" required class="p-3 rounded-lg bg-stone-950/60 border border-stone-800 text-text-bright placeholder-stone-600 focus:outline-none focus:ring-1 focus:ring-gold-gold focus:border-transparent transition-all">
+            <input type="tel" id="res-phone" placeholder="Phone Number" required class="p-3 rounded-lg bg-stone-950/60 border border-stone-800 text-text-bright placeholder-stone-600 focus:outline-none focus:ring-1 focus:ring-gold-gold focus:border-transparent transition-all">
+            
+            <div class="grid grid-cols-2 gap-2">
+              <input type="date" id="res-date" required class="p-3 rounded-lg bg-stone-950/60 border border-stone-800 text-text-bright focus:outline-none focus:ring-1 focus:ring-gold-gold focus:border-transparent transition-all">
+              <input type="time" id="res-time" required class="p-3 rounded-lg bg-stone-950/60 border border-stone-800 text-text-bright focus:outline-none focus:ring-1 focus:ring-gold-gold focus:border-transparent transition-all">
+            </div>
+
+            <select id="res-guests" class="p-3 rounded-lg bg-stone-950/60 border border-stone-800 text-text-bright focus:outline-none focus:ring-1 focus:ring-gold-gold focus:border-transparent transition-all">
+              <option value="1">1 Person</option>
+              <option value="2" selected>2 People</option>
+              <option value="3">3 People</option>
+              <option value="4">4 People</option>
+              <option value="5">5+ People</option>
+            </select>
+
+            <button type="submit" class="w-full py-3 rounded-lg bg-gold-gold hover:bg-gold-hover text-stone-950 font-bold text-[10px] tracking-widest uppercase transition-all duration-300 sound-trigger" data-sound="droplet">
+              BOOK NOW
+            </button>
+          </form>
+
+          <!-- Success Overlay -->
+          <div id="reservation-success" class="hidden absolute inset-0 bg-bg-card flex flex-col items-center justify-center text-center p-4 z-20">
+            <i data-lucide="check-circle-2" class="w-8 h-8 text-gold-gold mb-2"></i>
+            <h4 class="font-heading text-sm font-bold text-text-bright mb-1">Confirmed!</h4>
+            <p class="text-[10px] text-text-muted mb-4">Table is booked successfully.</p>
+            <button type="button" id="reset-res-btn" class="px-3 py-1.5 text-[9px] font-bold rounded border border-gold-gold text-gold-gold hover:bg-gold-gold hover:text-stone-950 transition-colors uppercase">
+              Reset
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Column 3: Visit Us (lg:col-span-2) -->
+      <div id="contact" class="lg:col-span-2 flex flex-col gap-5 scroll-mt-20 reveal-item delay-200">
+        <h3 class="font-heading text-lg font-bold text-gold-gold tracking-widest uppercase">Visit Us</h3>
+        <ul class="flex flex-col gap-4 text-xs text-text-muted" aria-label="Intake Contact Info">
+          <li class="flex gap-2">
+            <i data-lucide="map-pin" class="w-4 h-4 text-gold-gold flex-shrink-0 mt-0.5"></i>
+            <span>Gakyaba Marg,<br>Kathmandu 44600</span>
+          </li>
+          <li class="flex gap-2">
+            <i data-lucide="phone" class="w-4 h-4 text-gold-gold flex-shrink-0"></i>
+            <span>986-0288317</span>
+          </li>
+          <li class="flex gap-2">
+            <i data-lucide="mail" class="w-4 h-4 text-gold-gold flex-shrink-0"></i>
+            <span class="break-all">info@gallicafe.com</span>
+          </li>
+          <li class="flex gap-2">
+            <i data-lucide="clock" class="w-4 h-4 text-gold-gold flex-shrink-0"></i>
+            <span>Open 24 Hours</span>
+          </li>
+        </ul>
+        
+        <!-- Social Icons -->
+        <div class="flex gap-2 pt-2">
+          <a href="#" class="w-7 h-7 rounded bg-stone-900/80 border border-stone-850 hover:bg-gold-gold hover:text-stone-950 flex items-center justify-center transition-all sound-trigger" data-sound="droplet" aria-label="Facebook">
+            <i data-lucide="facebook" class="w-3.5 h-3.5"></i>
+          </a>
+          <a href="#" class="w-7 h-7 rounded bg-stone-900/80 border border-stone-850 hover:bg-gold-gold hover:text-stone-950 flex items-center justify-center transition-all sound-trigger" data-sound="droplet" aria-label="Instagram">
+            <i data-lucide="instagram" class="w-3.5 h-3.5"></i>
+          </a>
+          <a href="#" class="w-7 h-7 rounded bg-stone-900/80 border border-stone-850 hover:bg-gold-gold hover:text-stone-950 flex items-center justify-center transition-all sound-trigger" data-sound="droplet" aria-label="TikTok">
+            <i data-lucide="music-2" class="w-3.5 h-3.5"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Column 4: Customer Reviews (lg:col-span-2) -->
+      <div id="reviews" class="lg:col-span-2 flex flex-col gap-5 scroll-mt-20 reveal-item delay-300">
+        <h3 class="font-heading text-lg font-bold text-gold-gold tracking-widest uppercase">Customer Reviews</h3>
+        <div class="bg-bg-card/20 border border-stone-900 rounded-2xl p-5 flex flex-col gap-3 shadow-lg">
+          <div class="flex items-baseline gap-2">
+            <span class="text-3xl font-bold text-text-bright">5.0</span>
+            <span class="text-[10px] text-text-muted uppercase">Rating</span>
+          </div>
+          <!-- Stars -->
+          <div class="flex text-gold-gold gap-0.5">
+            <i data-lucide="star" class="w-3.5 h-3.5 fill-gold-gold text-gold-gold"></i>
+            <i data-lucide="star" class="w-3.5 h-3.5 fill-gold-gold text-gold-gold"></i>
+            <i data-lucide="star" class="w-3.5 h-3.5 fill-gold-gold text-gold-gold"></i>
+            <i data-lucide="star" class="w-3.5 h-3.5 fill-gold-gold text-gold-gold"></i>
+            <i data-lucide="star" class="w-3.5 h-3.5 fill-gold-gold text-gold-gold"></i>
+          </div>
+          <span class="text-[9px] text-text-muted">Based on 1 Reviews</span>
+          <p class="text-[11px] text-text-muted italic leading-relaxed border-t border-stone-900 pt-3 mt-1">
+            "Amazing food, great ambiance and excellent service. Highly recommended!"
+          </p>
+          <span class="text-[10px] font-bold text-gold-gold text-right">— Anil Shrestha</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-stone-950 border-t border-border-dim py-8 px-6 text-center text-[10px] text-stone-600">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <p>&copy; 2026 Galli Cafe & Restro. All Rights Reserved. Lazimpat, Kathmandu, Nepal.</p>
+      <p>Built with plain code & Tailwind CLI</p>
+    </div>
+  </footer>
+
+  <!-- Interactivity script -->
+  <script src="app.js"></script>
+</body>
+</html>

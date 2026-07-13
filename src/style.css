@@ -1,0 +1,175 @@
+@import "tailwindcss";
+
+@theme {
+  /* Color Palette - Ultra Premium Luxurious Cafe Theme */
+  --color-bg-dark: #080707;        /* Obsidian deep charcoal base */
+  --color-bg-card: #161312;        /* Roasted dark espresso panel background */
+  --color-gold-gold: #c5922e;      /* Muted champagne gold accent */
+  --color-gold-light: #ebdcb9;     /* Soft bright warm cream */
+  --color-gold-hover: #a3741d;     /* Deep rich brassy gold for hovers */
+  --color-text-bright: #ffffff;    /* High-contrast pure white text */
+  --color-text-muted: #e5d8c2;     /* Subtle cream-gray for description texts */
+  --color-border-dim: #231c17;     /* Thin copper-brown border */
+
+  /* Fonts - Sophisticated Dining */
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-script: "Alex Brush", cursive;
+}
+
+/* Core Settings */
+* {
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+}
+
+/* Hide default cursor on desktop to support our custom gold inertial mouse tracker */
+@media (min-width: 1024px) {
+  body, a, button, select, input, textarea {
+    cursor: none !important;
+  }
+}
+
+body {
+  background-color: var(--color-bg-dark);
+  color: var(--color-text-bright);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  letter-spacing: 0.025em;
+}
+
+/* Font helpers */
+.font-heading {
+  font-family: var(--font-serif);
+}
+
+.font-script {
+  font-family: var(--font-script);
+}
+
+/* --- Splash Screen Preloader --- */
+#preloader {
+  position: fixed;
+  inset: 0;
+  background-color: var(--color-bg-dark);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), visibility 1s;
+}
+
+#preloader.loaded {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.loader-bar-bg {
+  width: 200px;
+  height: 1px;
+  background-color: var(--color-border-dim);
+  position: relative;
+  overflow: hidden;
+  margin-top: 16px;
+}
+
+.loader-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 0%;
+  background-color: var(--color-gold-gold);
+  transition: width 2.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --- Custom Gold & Black Mouse Cursor --- */
+#custom-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+  z-index: 999;
+  will-change: left, top;
+}
+
+#custom-cursor.hovering #cursor-ring {
+  width: 44px;
+  height: 44px;
+  opacity: 1;
+  background-color: rgba(197, 146, 46, 0.08);
+  border-color: var(--color-gold-gold);
+}
+
+/* --- Scroll Reveal System (Vanilla GPU Transitions) --- */
+.reveal-item {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+.reveal-item.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1), transform 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+.reveal-scale.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.reveal-fade {
+  opacity: 0;
+  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity;
+}
+
+.reveal-fade.active {
+  opacity: 1;
+}
+
+/* Delay helpers for reveals */
+.delay-100 { transition-delay: 100ms; }
+.delay-200 { transition-delay: 200ms; }
+.delay-300 { transition-delay: 300ms; }
+.delay-400 { transition-delay: 400ms; }
+.delay-500 { transition-delay: 500ms; }
+
+/* Custom Luxury Transitions */
+.hover-zoom {
+  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.group:hover .hover-zoom {
+  transform: scale(1.04);
+}
+
+.hover-glow {
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+.hover-glow:hover {
+  border-color: rgba(197, 146, 46, 0.3);
+  box-shadow: 0 16px 40px -10px rgba(197, 146, 46, 0.1);
+}
+
+/* Ambient Pulse glow helper */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+}
+
+.pulse-glow-amber {
+  animation: pulseGlow 2.5s infinite ease-in-out;
+}
