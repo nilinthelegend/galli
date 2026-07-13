@@ -4,7 +4,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  // --- 1. Preloader Screen Animation & Teleport Bypass ---
+  // --- 1. Preloader Screen Animation ---
   const preloader = document.getElementById('preloader');
   const preloaderBar = document.getElementById('preloader-bar');
   const enterBtn = document.getElementById('enter-btn');
@@ -12,35 +12,30 @@ document.addEventListener('DOMContentLoaded', () => {
   const urlParams = new URLSearchParams(window.location.search);
   const isTeleport = urlParams.get('teleport') === '1';
 
-  if (isTeleport && preloader) {
-    // 1. Bypass manual preloader instantly with no transition or sound
-    preloader.style.transition = 'none';
-    preloader.style.opacity = '0';
-    preloader.style.visibility = 'hidden';
-    preloader.classList.add('loaded');
-  } else {
-    // Standard Manual Preloader screen flow
-    if (preloaderBar) {
-      setTimeout(() => {
-        preloaderBar.style.width = '100%';
-      }, 100);
-    }
+  if (preloaderBar) {
+    // Start progress loading line
     setTimeout(() => {
-      if (enterBtn) {
-        enterBtn.classList.remove('pointer-events-none', 'opacity-0');
-        enterBtn.classList.add('opacity-100');
-      }
-    }, 2200);
+      preloaderBar.style.width = '100%';
+    }, 100);
+  }
 
+  // Once loading line finishes, fade in the Enter button
+  setTimeout(() => {
     if (enterBtn) {
-      enterBtn.addEventListener('click', () => {
-        initAudioContext();
-        playWaterDrop(250, 1100, 0.12, 0.25);
-        if (preloader) {
-          preloader.classList.add('loaded');
-        }
-      });
+      enterBtn.classList.remove('pointer-events-none', 'opacity-0');
+      enterBtn.classList.add('opacity-100');
     }
+  }, 2200);
+
+  // Enter button click: initializes sound context, plays intro sound, and dismisses preloader
+  if (enterBtn) {
+    enterBtn.addEventListener('click', () => {
+      initAudioContext();
+      playWaterDrop(250, 1100, 0.12, 0.25);
+      if (preloader) {
+        preloader.classList.add('loaded');
+      }
+    });
   }
 
 
