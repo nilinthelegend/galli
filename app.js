@@ -272,11 +272,68 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 
-  // --- 7. Table Booking Confirmation Form ---
+  // --- 7. Table Booking Confirmation Modal Form ---
+  const resModal = document.getElementById('reservation-modal');
+  const openResModalBtn = document.getElementById('open-res-modal-btn');
+  const closeModalBtn = document.getElementById('close-modal-btn');
   const resForm = document.getElementById('reservation-form');
   const resSuccessState = document.getElementById('reservation-success');
   const resetResBtn = document.getElementById('reset-res-btn');
+  
+  function openReservationModal(e) {
+    if (e) e.preventDefault();
+    initAudioContext();
+    if (resModal) {
+      resModal.classList.add('open');
+      document.body.style.overflow = 'hidden'; // lock background scroll
+      
+      // Auto focus on name input field
+      const nameInput = document.getElementById('res-name');
+      if (nameInput) {
+        setTimeout(() => nameInput.focus(), 100);
+      }
+    }
+    playWaterDrop(200, 950, 0.08, 0.18);
+  }
 
+  function closeReservationModal() {
+    if (resModal) {
+      resModal.classList.remove('open');
+      document.body.style.overflow = ''; // restore background scroll
+    }
+    playWaterDrop(280, 850, 0.06, 0.1);
+  }
+
+  // Bind Open triggers
+  if (openResModalBtn) openResModalBtn.addEventListener('click', openReservationModal);
+  
+  // Bind all anchors pointing to #reservation on the page
+  const reservationLinks = document.querySelectorAll('a[href="#reservation"]');
+  reservationLinks.forEach(link => {
+    link.addEventListener('click', openReservationModal);
+  });
+
+  // Bind Close triggers
+  if (closeModalBtn) closeModalBtn.addEventListener('click', closeReservationModal);
+  
+  // Close on Escape key press
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && resModal && resModal.classList.contains('open')) {
+      closeReservationModal();
+    }
+  });
+
+  // Close when clicking outside the modal panel card
+  if (resModal) {
+    resModal.addEventListener('click', (e) => {
+      // Check if click was directly on the background overlay backdrop
+      if (e.target === resModal) {
+        closeReservationModal();
+      }
+    });
+  }
+
+  // Handle Form Submission
   if (resForm && resSuccessState) {
     resForm.addEventListener('submit', (event) => {
       event.preventDefault();
@@ -304,11 +361,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Reset form and close modal
   if (resetResBtn && resForm && resSuccessState) {
     resetResBtn.addEventListener('click', () => {
       resForm.reset();
       resSuccessState.classList.add('hidden');
-      playWaterDrop(280, 850, 0.06, 0.1);
+      closeReservationModal();
     });
   }
 

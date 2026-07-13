@@ -412,41 +412,19 @@
         </div>
       </div>
 
-      <!-- Column 2: Make a Reservation (lg:col-span-3) -->
+      <!-- Column 2: Make a Reservation (lg:col-span-3) - Styled as CTA -->
       <div id="reservation" class="lg:col-span-3 flex flex-col gap-5 scroll-mt-20 reveal-item delay-100">
-        <h3 class="font-heading text-lg font-bold text-gold-gold tracking-widest uppercase">Make a Reservation</h3>
-        <div class="bg-bg-card/45 border border-stone-900/80 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-          <form id="reservation-form" class="flex flex-col gap-4 text-xs">
-            <input type="text" id="res-name" placeholder="Your Name" required class="p-3 rounded-lg bg-stone-950/60 border border-stone-800 text-text-bright placeholder-stone-600 focus:outline-none focus:ring-1 focus:ring-gold-gold focus:border-transparent transition-all">
-            <input type="tel" id="res-phone" placeholder="Phone Number" required class="p-3 rounded-lg bg-stone-950/60 border border-stone-800 text-text-bright placeholder-stone-600 focus:outline-none focus:ring-1 focus:ring-gold-gold focus:border-transparent transition-all">
-            
-            <div class="grid grid-cols-2 gap-2">
-              <input type="date" id="res-date" required class="p-3 rounded-lg bg-stone-950/60 border border-stone-800 text-text-bright focus:outline-none focus:ring-1 focus:ring-gold-gold focus:border-transparent transition-all">
-              <input type="time" id="res-time" required class="p-3 rounded-lg bg-stone-950/60 border border-stone-800 text-text-bright focus:outline-none focus:ring-1 focus:ring-gold-gold focus:border-transparent transition-all">
-            </div>
-
-            <select id="res-guests" class="p-3 rounded-lg bg-stone-950/60 border border-stone-800 text-text-bright focus:outline-none focus:ring-1 focus:ring-gold-gold focus:border-transparent transition-all">
-              <option value="1">1 Person</option>
-              <option value="2" selected>2 People</option>
-              <option value="3">3 People</option>
-              <option value="4">4 People</option>
-              <option value="5">5+ People</option>
-            </select>
-
-            <button type="submit" class="w-full py-3 rounded-lg bg-gold-gold hover:bg-gold-hover text-stone-950 font-bold text-[10px] tracking-widest uppercase transition-all duration-300 sound-trigger" data-sound="droplet">
-              BOOK NOW
-            </button>
-          </form>
-
-          <!-- Success Overlay -->
-          <div id="reservation-success" class="hidden absolute inset-0 bg-bg-card flex flex-col items-center justify-center text-center p-4 z-20">
-            <i data-lucide="check-circle-2" class="w-8 h-8 text-gold-gold mb-2"></i>
-            <h4 class="font-heading text-sm font-bold text-text-bright mb-1">Confirmed!</h4>
-            <p class="text-[10px] text-text-muted mb-4">Table is booked successfully.</p>
-            <button type="button" id="reset-res-btn" class="px-3 py-1.5 text-[9px] font-bold rounded border border-gold-gold text-gold-gold hover:bg-gold-gold hover:text-stone-950 transition-colors uppercase">
-              Reset
-            </button>
+        <h3 class="font-heading text-lg font-bold text-gold-gold tracking-widest uppercase">Table Bookings</h3>
+        <div class="bg-bg-card/45 border border-border-dim rounded-2xl p-6 flex flex-col justify-between h-[310px] shadow-xl relative overflow-hidden">
+          <div class="flex flex-col gap-3">
+            <span class="font-script text-xl text-gold-gold tracking-wide block">Reserve your spot</span>
+            <p class="text-xs text-text-muted leading-relaxed">
+              Plan your dining experience with us. Secure an intimate table or courtyard setting for lunches, dinners, or private events in advance.
+            </p>
           </div>
+          <button id="open-res-modal-btn" class="w-full py-3 rounded-lg border border-gold-gold text-gold-gold font-bold text-[10px] tracking-widest uppercase hover:bg-gold-gold/10 transition-all duration-300 sound-trigger" data-sound="droplet">
+            OPEN RESERVATION
+          </button>
         </div>
       </div>
 
@@ -520,6 +498,76 @@
       <p>Built with plain code & Tailwind CLI</p>
     </div>
   </footer>
+
+  <!-- Premium Reservation Modal Overlay -->
+  <div id="reservation-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-stone-950/80 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-500" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    
+    <!-- Modal Panel Card -->
+    <div id="reservation-modal-panel" class="relative w-full max-w-md bg-bg-card border border-border-dim rounded-2xl p-8 md:p-10 shadow-2xl scale-95 opacity-0 transition-all duration-500 flex flex-col gap-6">
+      
+      <!-- Close Button -->
+      <button id="close-modal-btn" class="absolute top-4 right-4 p-2 rounded-lg text-stone-600 hover:text-gold-gold transition-colors sound-trigger" data-sound="droplet" aria-label="Close reservation modal">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <!-- Header -->
+      <div class="text-center">
+        <span class="font-script text-2xl text-gold-gold tracking-wide block mb-1">Book your Sanctuary</span>
+        <h3 id="modal-title" class="font-heading text-lg font-bold tracking-widest text-text-bright uppercase">Make a Reservation</h3>
+        <div class="w-12 h-[1px] bg-gold-gold/40 mx-auto mt-3"></div>
+      </div>
+
+      <!-- Booking Form -->
+      <form id="reservation-form" class="flex flex-col gap-4 text-xs md:text-sm">
+        <div class="flex flex-col gap-1">
+          <label for="res-name" class="font-bold text-[9px] text-gold-gold tracking-wider uppercase">// Name</label>
+          <input type="text" id="res-name" placeholder="Your Name" required class="p-3 rounded-lg bg-stone-950/60 border border-stone-850 text-text-bright placeholder-stone-600 focus:outline-none focus:ring-1 focus:ring-gold-gold focus:border-transparent transition-all">
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label for="res-phone" class="font-bold text-[9px] text-gold-gold tracking-wider uppercase">// Contact Number</label>
+          <input type="tel" id="res-phone" placeholder="Phone Number" required class="p-3 rounded-lg bg-stone-950/60 border border-stone-850 text-text-bright placeholder-stone-600 focus:outline-none focus:ring-1 focus:ring-gold-gold focus:border-transparent transition-all">
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1">
+            <label for="res-date" class="font-bold text-[9px] text-gold-gold tracking-wider uppercase">// Date</label>
+            <input type="date" id="res-date" required class="p-3 rounded-lg bg-stone-950/60 border border-stone-850 text-text-bright focus:outline-none focus:ring-1 focus:ring-gold-gold focus:border-transparent transition-all">
+          </div>
+          <div class="flex flex-col gap-1">
+            <label for="res-time" class="font-bold text-[9px] text-gold-gold tracking-wider uppercase">// Time</label>
+            <input type="time" id="res-time" required class="p-3 rounded-lg bg-stone-950/60 border border-stone-850 text-text-bright focus:outline-none focus:ring-1 focus:ring-gold-gold focus:border-transparent transition-all">
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label for="res-guests" class="font-bold text-[9px] text-gold-gold tracking-wider uppercase">// Table Size</label>
+          <select id="res-guests" class="p-3 rounded-lg bg-stone-950/60 border border-stone-850 text-text-bright focus:outline-none focus:ring-1 focus:ring-gold-gold focus:border-transparent transition-all">
+            <option value="1">1 Person</option>
+            <option value="2" selected>2 People</option>
+            <option value="3">3 People</option>
+            <option value="4">4 People</option>
+            <option value="5">5+ People</option>
+          </select>
+        </div>
+
+        <button type="submit" class="w-full py-3.5 rounded-lg bg-gold-gold hover:bg-gold-hover text-stone-950 font-bold text-[10px] tracking-widest uppercase transition-all duration-300 sound-trigger mt-2" data-sound="droplet">
+          CONFIRM BOOKING
+        </button>
+      </form>
+
+      <!-- Success Panel -->
+      <div id="reservation-success" class="hidden absolute inset-0 bg-bg-card rounded-2xl flex flex-col items-center justify-center text-center p-8 z-20 transition-all duration-300">
+        <i data-lucide="check-circle-2" class="w-12 h-12 text-gold-gold mb-3"></i>
+        <h4 class="font-heading text-base font-bold text-text-bright mb-1 uppercase tracking-wide">Table Reserved</h4>
+        <p class="text-[11px] text-text-muted mb-6 leading-relaxed max-w-xs">Your table has been reserved successfully. We look forward to welcoming you.</p>
+        <button type="button" id="reset-res-btn" class="px-5 py-2 text-[9px] font-bold rounded-lg border border-gold-gold text-gold-gold hover:bg-gold-gold hover:text-stone-950 transition-all uppercase tracking-widest">
+          Close Window
+        </button>
+      </div>
+
+    </div>
+  </div>
 
   <!-- Interactivity script -->
   <script src="app.js"></script>
