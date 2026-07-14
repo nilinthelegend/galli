@@ -11,8 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const preloaderBar = document.getElementById('preloader-bar');
   const enterBtn = document.getElementById('enter-btn');
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const isTeleport = urlParams.get('teleport') === '1';
 
   if (preloaderBar) {
     // Start progress loading line
@@ -414,11 +412,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (transitionFinished) return;
       transitionFinished = true;
 
-      // Clean up URL parameter using history replaceState
-      const cleanUrl = new URL(window.location);
-      cleanUrl.searchParams.delete('teleport');
-      window.history.replaceState({}, document.title, cleanUrl.pathname + cleanUrl.search);
-
       // Fade canvas out and restore scroll
       resolvingCanvas.style.opacity = '0';
       document.documentElement.classList.remove('teleporting');
@@ -429,116 +422,110 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 500);
     }
 
-    if (isTeleport) {
-      // 1. Check for reduced motion preference
-      if (prefersReducedMotion.matches) {
-        // Skip animation and clean up instantly
+    // 1. Check for reduced motion preference
+    if (prefersReducedMotion.matches) {
+      // Skip animation and clean up instantly
+      cleanUpTransition();
+    } else {
+      // 2. Setup safety fallback (1.5 seconds)
+      // Ensure "teleporting" class is deleted, scroll is restored, and overlay hidden
+      const safetyTimeoutId = setTimeout(() => {
+        console.warn('Resolving animation safety fallback triggered.');
         cleanUpTransition();
-      } else {
-        // 2. Setup safety fallback (1.5 seconds)
-        // Ensure "teleporting" class is deleted, scroll is restored, and overlay hidden
-        const safetyTimeoutId = setTimeout(() => {
-          console.warn('Resolving animation safety fallback triggered.');
-          cleanUpTransition();
-        }, 1500);
+      }, 1500);
 
-        // 3. Play warm gold restaurant converging particle animation
-        const ctx = resolvingCanvas.getContext('2d');
-        if (ctx) {
+      // 3. Play warm gold restaurant converging particle animation
+      const ctx = resolvingCanvas.getContext('2d');
+      if (ctx) {
+        resolvingCanvas.width = window.innerWidth;
+        resolvingCanvas.height = window.innerHeight;
+
+        const duration = 1000; // 1 second duration
+        let startTime = null;
+
+        // Gold particle array
+        const particles = [];
+        const particleCount = 100;
+        for (let i = 0; i < particleCount; i++) {
+          particles.push({
+            x: Math.random() * resolvingCanvas.width,
+            y: Math.random() * resolvingCanvas.height,
+            targetX: resolvingCanvas.width / 2 + (Math.random() - 0.5) * 180,
+            targetY: resolvingCanvas.height / 2 + (Math.random() - 0.5) * 180,
+            size: 1 + Math.random() * 3,
+            speed: 1.5 + Math.random() * 2,
+            opacity: 0.3 + Math.random() * 0.7,
+            color: `rgba(${197 + Math.random() * 30}, ${146 + Math.random() * 25}, 46, `
+          });
+        }
+
+        function animate(timestamp) {
+          if (!startTime) startTime = timestamp;
+          const progress = timestamp - startTime;
+          const elapsedPercent = progress / duration;
+
+          // Fill obsidian background with slight alpha trail
+          ctx.fillStyle = 'rgba(8, 7, 7, 0.2)';
+          ctx.fillRect(0, 0, resolvingCanvas.width, resolvingCanvas.height);
+
+          // Draw and converge particles
+          particles.forEach(p => {
+            const dx = p.targetX - p.x;
+            const dy = p.targetY - p.y;
+            
+            p.x += dx * 0.05 * p.speed;
+            p.y += dy * 0.05 * p.speed;
+
+            const alpha = p.opacity * (1 - elapsedPercent);
+            ctx.fillStyle = p.color + `${alpha})`;
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size * (1 + elapsedPercent * 1.5), 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.shadowColor = 'rgba(197, 146, 46, 0.4)';
+            ctx.shadowBlur = p.size * 4;
+          });
+
+          // Radial golden glow in the center expanding outwards
+          const gradient = ctx.createRadialGradient(
+            resolvingCanvas.width / 2, resolvingCanvas.height / 2, 0,
+            resolvingCanvas.width / 2, resolvingCanvas.height / 2, Math.max(resolvingCanvas.width, resolvingCanvas.height) * 0.5 * elapsedPercent
+          );
+          gradient.addColorStop(0, `rgba(197, 146, 46, ${0.15 * (1 - elapsedPercent)})`);
+          gradient.addColorStop(1, 'rgba(8, 7, 7, 0)');
+          ctx.fillStyle = gradient;
+          ctx.shadowBlur = 0; // reset shadow blur
+          ctx.fillRect(0, 0, resolvingCanvas.width, resolvingCanvas.height);
+
+          if (progress < duration) {
+            animationFrameId = requestAnimationFrame(animate);
+          } else {
+            clearTimeout(safetyTimeoutId);
+            cleanUpTransition();
+          }
+        }
+
+        let animationFrameId = null;
+
+        // Handle resizing during animation
+        const resizeHandler = () => {
           resolvingCanvas.width = window.innerWidth;
           resolvingCanvas.height = window.innerHeight;
+        };
+        window.addEventListener('resize', resizeHandler);
 
-          const duration = 1000; // 1 second duration
-          let startTime = null;
+        const originalCleanUp = cleanUpTransition;
+        cleanUpTransition = () => {
+          window.removeEventListener('resize', resizeHandler);
+          originalCleanUp();
+        };
 
-          // Gold particle array
-          const particles = [];
-          const particleCount = 100;
-          for (let i = 0; i < particleCount; i++) {
-            particles.push({
-              x: Math.random() * resolvingCanvas.width,
-              y: Math.random() * resolvingCanvas.height,
-              targetX: resolvingCanvas.width / 2 + (Math.random() - 0.5) * 180,
-              targetY: resolvingCanvas.height / 2 + (Math.random() - 0.5) * 180,
-              size: 1 + Math.random() * 3,
-              speed: 1.5 + Math.random() * 2,
-              opacity: 0.3 + Math.random() * 0.7,
-              color: `rgba(${197 + Math.random() * 30}, ${146 + Math.random() * 25}, 46, `
-            });
-          }
-
-          function animate(timestamp) {
-            if (!startTime) startTime = timestamp;
-            const progress = timestamp - startTime;
-            const elapsedPercent = progress / duration;
-
-            // Fill obsidian background with slight alpha trail
-            ctx.fillStyle = 'rgba(8, 7, 7, 0.2)';
-            ctx.fillRect(0, 0, resolvingCanvas.width, resolvingCanvas.height);
-
-            // Draw and converge particles
-            particles.forEach(p => {
-              const dx = p.targetX - p.x;
-              const dy = p.targetY - p.y;
-              
-              p.x += dx * 0.05 * p.speed;
-              p.y += dy * 0.05 * p.speed;
-
-              const alpha = p.opacity * (1 - elapsedPercent);
-              ctx.fillStyle = p.color + `${alpha})`;
-
-              ctx.beginPath();
-              ctx.arc(p.x, p.y, p.size * (1 + elapsedPercent * 1.5), 0, Math.PI * 2);
-              ctx.fill();
-
-              ctx.shadowColor = 'rgba(197, 146, 46, 0.4)';
-              ctx.shadowBlur = p.size * 4;
-            });
-
-            // Radial golden glow in the center expanding outwards
-            const gradient = ctx.createRadialGradient(
-              resolvingCanvas.width / 2, resolvingCanvas.height / 2, 0,
-              resolvingCanvas.width / 2, resolvingCanvas.height / 2, Math.max(resolvingCanvas.width, resolvingCanvas.height) * 0.5 * elapsedPercent
-            );
-            gradient.addColorStop(0, `rgba(197, 146, 46, ${0.15 * (1 - elapsedPercent)})`);
-            gradient.addColorStop(1, 'rgba(8, 7, 7, 0)');
-            ctx.fillStyle = gradient;
-            ctx.shadowBlur = 0; // reset shadow blur
-            ctx.fillRect(0, 0, resolvingCanvas.width, resolvingCanvas.height);
-
-            if (progress < duration) {
-              animationFrameId = requestAnimationFrame(animate);
-            } else {
-              clearTimeout(safetyTimeoutId);
-              cleanUpTransition();
-            }
-          }
-
-          let animationFrameId = null;
-
-          // Handle resizing during animation
-          const resizeHandler = () => {
-            resolvingCanvas.width = window.innerWidth;
-            resolvingCanvas.height = window.innerHeight;
-          };
-          window.addEventListener('resize', resizeHandler);
-
-          const originalCleanUp = cleanUpTransition;
-          cleanUpTransition = () => {
-            window.removeEventListener('resize', resizeHandler);
-            originalCleanUp();
-          };
-
-          requestAnimationFrame(animate);
-        } else {
-          // Canvas 2d context unavailable, fallback immediately
-          cleanUpTransition();
-        }
+        requestAnimationFrame(animate);
+      } else {
+        // Canvas 2d context unavailable, fallback immediately
+        cleanUpTransition();
       }
-    } else {
-      // Direct visit, hide overlay instantly without scroll lock
-      resolvingCanvas.style.display = 'none';
-      document.documentElement.classList.remove('teleporting');
     }
   }
 

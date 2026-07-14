@@ -28,8 +28,7 @@
   <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
   <!-- Teleport pre-render FOUC blocker -->
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('teleport') === '1' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       document.documentElement.classList.add('teleporting');
     }
   </script>
