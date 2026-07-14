@@ -71,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- 3. Web Audio API Drop Synthesizer ---
   let audioCtx = null;
+  let flameNoiseBuffer = null;
   let isMuted = localStorage.getItem('galli-sound-muted') === 'true';
 
   // Toggle button selectors
@@ -84,6 +85,23 @@ document.addEventListener('DOMContentLoaded', () => {
   function initAudioContext() {
     if (!audioCtx) {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx && !flameNoiseBuffer) {
+      // Create a 2.5s white noise buffer once and cache it
+      const sampleRate = audioCtx.sampleRate;
+      const bufferSize = sampleRate * 2.5;
+      flameNoiseBuffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+      const data = flameNoiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      // Fade edges (50ms) to ensure seamless loop wrap transitions without clicks
+      const fadeSamples = Math.floor(sampleRate * 0.05);
+      for (let i = 0; i < fadeSamples; i++) {
+        const gain = i / fadeSamples;
+        data[i] *= gain;
+        data[bufferSize - 1 - i] *= gain;
+      }
     }
     if (audioCtx && audioCtx.state === 'suspended') {
       audioCtx.resume();
@@ -132,7 +150,11 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('galli-sound-muted', isMuted);
       updateAudioButtonUI();
       
-      if (!isMuted) {
+      if (isMuted) {
+        if (typeof stopFlameAudio === 'function') {
+          stopFlameAudio();
+        }
+      } else {
         playWaterDrop(200, 1100, 0.08, 0.2);
       }
     });
@@ -830,5 +852,253 @@ document.addEventListener('DOMContentLoaded', () => {
       accent.classList.add('gold-accent-pulse');
     }
   });
+
+  // --- G. Viewport Scroll-Flame indicator Canvas & Synthesized Looping Audio ---
+  const scrollFlame = document.getElementById('scroll-flame');
+  
+  // Audio state holders in outer G scope for accessibility
+  let flameAudioSource = null;
+  let flameAudioGain = null;
+
+  // Global functions so they hoist correctly inside DOMContentLoaded
+  window.stopFlameAudio = function() {
+    if (!flameAudioSource) return;
+    
+    const sourceToStop = flameAudioSource;
+    const gainToFade = flameAudioGain;
+    
+    flameAudioSource = null;
+    flameAudioGain = null;
+    
+    if (gainToFade && audioCtx) {
+      try {
+        gainToFade.gain.setValueAtTime(gainToFade.gain.value, audioCtx.currentTime);
+        gainToFade.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5); // 500ms fade out
+      } catch (e) {}
+    }
+    
+    setTimeout(() => {
+      try {
+        if (sourceToStop) {
+          sourceToStop.stop();
+          sourceToStop.disconnect();
+        }
+      } catch (e) {}
+    }, 550);
+  };
+
+  if (scrollFlame) {
+    const ctx = scrollFlame.getContext('2d');
+    let particles = [];
+    let isScrolling = false;
+    let loopRunning = false;
+    let animationFrameId = null;
+    let scrollTimeoutId = null;
+    let ticking = false;
+    let isMobile = window.innerWidth < 768;
+    
+    // Direction tracking states
+    let lastScrollY = window.scrollY;
+    let currentDirection = 'down';
+
+    // Particle Blueprint
+    class FlameParticle {
+      constructor(spawnDirection) {
+        this.direction = spawnDirection;
+        this.reset(true);
+      }
+
+      reset(init = false) {
+        this.x = Math.random() * scrollFlame.width;
+        this.size = 2.5 + Math.random() * 4.5;
+        this.speedX = (Math.random() - 0.5) * 0.35;
+        this.life = 1.0;
+        this.decay = 0.012 + Math.random() * 0.018;
+
+        // Select color variant (mostly gold/orange, occasionally yellow, rarely reddish)
+        const rand = Math.random();
+        if (rand < 0.15) {
+          // Yellow
+          this.r = 245 + Math.floor(Math.random() * 10);
+          this.g = 200 + Math.floor(Math.random() * 40);
+          this.b = 50;
+        } else if (rand < 0.8) {
+          // Gold / Amber
+          this.r = 197 + Math.floor(Math.random() * 40);
+          this.g = 130 + Math.floor(Math.random() * 30);
+          this.b = 30;
+        } else {
+          // Orange / Red
+          this.r = 180 + Math.floor(Math.random() * 30);
+          this.g = 60 + Math.floor(Math.random() * 20);
+          this.b = 10;
+        }
+
+        if (this.direction === 'down') {
+          // Spawns at bottom edge, moves up (negative speedY)
+          this.y = scrollFlame.height + (init ? Math.random() * 20 : Math.random() * 8);
+          this.speedY = -(0.7 + Math.random() * 1.0);
+        } else {
+          // Spawns at top edge, moves down (positive speedY)
+          this.y = 0 - (init ? Math.random() * 20 : Math.random() * 8);
+          this.speedY = 0.7 + Math.random() * 1.0;
+        }
+      }
+
+      update() {
+        this.y += this.speedY;
+        this.x += this.speedX;
+        this.life -= this.decay;
+        if (this.size > 0.1) {
+          this.size -= 0.04;
+        }
+      }
+
+      draw() {
+        const alpha = Math.max(0, this.life * 0.85);
+        ctx.fillStyle = `rgba(${this.r}, ${this.g}, ${this.b}, ${alpha})`;
+        ctx.shadowColor = `rgba(197, 146, 46, ${alpha * 0.45})`;
+        ctx.shadowBlur = this.size * 2.2;
+
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, Math.max(0.1, this.size), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function resizeCanvas() {
+      if (window.innerWidth < 768) {
+        scrollFlame.style.display = 'none';
+        isMobile = true;
+        return;
+      }
+      isMobile = false;
+      scrollFlame.style.display = 'block';
+      scrollFlame.width = window.innerWidth;
+      scrollFlame.height = window.innerHeight;
+    }
+
+    function startFlameAudio() {
+      if (isMuted || !flameNoiseBuffer || prefersReducedMotion.matches || isMobile) return;
+      initAudioContext();
+      if (!audioCtx) return;
+      if (flameAudioSource) return;
+
+      try {
+        // Create rumble filter node
+        const rumbleFilter = audioCtx.createBiquadFilter();
+        rumbleFilter.type = 'lowpass';
+        rumbleFilter.frequency.setValueAtTime(180, audioCtx.currentTime);
+
+        // Create main gain node
+        flameAudioGain = audioCtx.createGain();
+        flameAudioGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+        flameAudioGain.gain.linearRampToValueAtTime(0.045, audioCtx.currentTime + 0.3); // 300ms fade-in
+
+        // Create buffer source
+        flameAudioSource = audioCtx.createBufferSource();
+        flameAudioSource.buffer = flameNoiseBuffer;
+        flameAudioSource.loop = true;
+
+        // Routing
+        flameAudioSource.connect(rumbleFilter);
+        rumbleFilter.connect(flameAudioGain);
+        flameAudioGain.connect(audioCtx.destination);
+
+        flameAudioSource.start();
+      } catch (e) {
+        console.warn('Failed to play flame audio:', e);
+      }
+    }
+
+    function renderLoop() {
+      ctx.clearRect(0, 0, scrollFlame.width, scrollFlame.height);
+      ctx.shadowBlur = 0;
+
+      // Spawn new particles while scrolling is active
+      if (isScrolling && !isMobile && !prefersReducedMotion.matches) {
+        const spawns = Math.floor(scrollFlame.width / 160);
+        for (let i = 0; i < spawns; i++) {
+          particles.push(new FlameParticle(currentDirection));
+        }
+      }
+
+      // Update & Draw active particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.update();
+        if (p.life <= 0 || p.size <= 0.1 || isMobile || prefersReducedMotion.matches) {
+          particles.splice(i, 1);
+        } else {
+          p.draw();
+        }
+      }
+
+      // Loop controls
+      if (particles.length > 0 && !isMobile && !prefersReducedMotion.matches) {
+        animationFrameId = requestAnimationFrame(renderLoop);
+      } else {
+        loopRunning = false;
+        ctx.shadowBlur = 0;
+        ctx.clearRect(0, 0, scrollFlame.width, scrollFlame.height);
+        scrollFlame.classList.remove('active');
+      }
+    }
+
+    // Scroll trigger handler
+    window.addEventListener('scroll', () => {
+      if (isMobile || prefersReducedMotion.matches) return;
+
+      // Track directional orientation
+      const currentScrollY = window.scrollY;
+      currentDirection = currentScrollY > lastScrollY ? 'down' : 'up';
+      lastScrollY = currentScrollY;
+
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          if (!isScrolling) {
+            isScrolling = true;
+            scrollFlame.classList.add('active');
+            startFlameAudio();
+          }
+          if (!loopRunning) {
+            loopRunning = true;
+            renderLoop();
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
+
+      if (scrollTimeoutId) {
+        clearTimeout(scrollTimeoutId);
+      }
+
+      scrollTimeoutId = setTimeout(() => {
+        isScrolling = false;
+        stopFlameAudio();
+      }, 400); // 400ms debounce to start dying down
+    });
+
+    // Debounced Resize handler
+    let resizeTimeoutId = null;
+    window.addEventListener('resize', () => {
+      if (resizeTimeoutId) clearTimeout(resizeTimeoutId);
+      resizeTimeoutId = setTimeout(() => {
+        resizeCanvas();
+        if (isMobile) {
+          particles = [];
+          isScrolling = false;
+          stopFlameAudio();
+          if (animationFrameId) cancelAnimationFrame(animationFrameId);
+          loopRunning = false;
+          ctx.clearRect(0, 0, scrollFlame.width, scrollFlame.height);
+        }
+      }, 200);
+    });
+
+    // Initial canvas setup
+    resizeCanvas();
+  }
 
 });
