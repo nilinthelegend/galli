@@ -910,58 +910,69 @@ document.addEventListener('DOMContentLoaded', () => {
 
       reset(init = false) {
         this.x = Math.random() * scrollFlame.width;
-        this.size = 2.5 + Math.random() * 4.5;
-        this.speedX = (Math.random() - 0.5) * 0.35;
+        // Start thick at the base
+        this.size = 5.5 + Math.random() * 5.5;
+        this.speedX = (Math.random() - 0.5) * 0.2;
         this.life = 1.0;
-        this.decay = 0.012 + Math.random() * 0.018;
+        // Faster decay for realistic rapid movement licks
+        this.decay = 0.02 + Math.random() * 0.018;
 
-        // Select color variant (mostly gold/orange, occasionally yellow, rarely reddish)
-        const rand = Math.random();
-        if (rand < 0.15) {
-          // Yellow
-          this.r = 245 + Math.floor(Math.random() * 10);
-          this.g = 200 + Math.floor(Math.random() * 40);
-          this.b = 50;
-        } else if (rand < 0.8) {
-          // Gold / Amber
-          this.r = 197 + Math.floor(Math.random() * 40);
-          this.g = 130 + Math.floor(Math.random() * 30);
-          this.b = 30;
-        } else {
-          // Orange / Red
-          this.r = 180 + Math.floor(Math.random() * 30);
-          this.g = 60 + Math.floor(Math.random() * 20);
-          this.b = 10;
-        }
+        // Sine wave horizontal turbulence parameters
+        this.wavePhase = Math.random() * Math.PI * 2;
+        this.waveSpeed = 0.05 + Math.random() * 0.06; // sway frequency
+        this.waveAmplitude = 0.15 + Math.random() * 0.25; // sway displacement offset
 
         if (this.direction === 'down') {
           // Spawns at bottom edge, moves up (negative speedY)
-          this.y = scrollFlame.height + (init ? Math.random() * 20 : Math.random() * 8);
-          this.speedY = -(0.7 + Math.random() * 1.0);
+          this.y = scrollFlame.height + (init ? Math.random() * 25 : Math.random() * 10);
+          this.speedY = -(0.8 + Math.random() * 1.2);
         } else {
           // Spawns at top edge, moves down (positive speedY)
-          this.y = 0 - (init ? Math.random() * 20 : Math.random() * 8);
-          this.speedY = 0.7 + Math.random() * 1.0;
+          this.y = 0 - (init ? Math.random() * 25 : Math.random() * 10);
+          this.speedY = 0.8 + Math.random() * 1.2;
         }
       }
 
       update() {
         this.y += this.speedY;
         this.x += this.speedX;
+        
+        // Apply wave turbulence
+        this.wavePhase += this.waveSpeed;
+        this.x += Math.sin(this.wavePhase) * this.waveAmplitude;
+
         this.life -= this.decay;
         if (this.size > 0.1) {
-          this.size -= 0.04;
+          this.size -= 0.12; // Taper down quickly
         }
       }
 
       draw() {
-        const alpha = Math.max(0, this.life * 0.85);
-        ctx.fillStyle = `rgba(${this.r}, ${this.g}, ${this.b}, ${alpha})`;
-        ctx.shadowColor = `rgba(197, 146, 46, ${alpha * 0.45})`;
-        ctx.shadowBlur = this.size * 2.2;
+        const alpha = Math.max(0, this.life * 0.8);
+        
+        // Multi-layered radial gradient centered on the particle's hot core
+        const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 1.8);
+        grad.addColorStop(0, `rgba(255, 255, 230, ${alpha})`); // White hot center
+        grad.addColorStop(0.25, `rgba(240, 120, 10, ${alpha * 0.95})`); // Amber / Orange body
+        grad.addColorStop(0.65, `rgba(180, 20, 0, ${alpha * 0.4})`); // Deep red licks
+        grad.addColorStop(1, 'rgba(180, 20, 0, 0)'); // Fade out
+        
+        ctx.fillStyle = grad;
 
+        // Custom Bezier path for elongated teardrop flame shape
         ctx.beginPath();
-        ctx.arc(this.x, this.y, Math.max(0.1, this.size), 0, Math.PI * 2);
+        if (this.direction === 'down') {
+          // Pointing UP: narrow top (y - size*2.2), wide base (y + size*0.8)
+          ctx.moveTo(this.x, this.y - this.size * 2.2);
+          ctx.quadraticCurveTo(this.x + this.size * 1.1, this.y, this.x, this.y + this.size * 0.8);
+          ctx.quadraticCurveTo(this.x - this.size * 1.1, this.y, this.x, this.y - this.size * 2.2);
+        } else {
+          // Pointing DOWN: wide base (y - size*0.8), narrow top (y + size*2.2)
+          ctx.moveTo(this.x, this.y + this.size * 2.2);
+          ctx.quadraticCurveTo(this.x + this.size * 1.1, this.y, this.x, this.y - this.size * 0.8);
+          ctx.quadraticCurveTo(this.x - this.size * 1.1, this.y, this.x, this.y + this.size * 2.2);
+        }
+        ctx.closePath();
         ctx.fill();
       }
     }
@@ -1013,11 +1024,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderLoop() {
       ctx.clearRect(0, 0, scrollFlame.width, scrollFlame.height);
-      ctx.shadowBlur = 0;
 
-      // Spawn new particles while scrolling is active
-      if (isScrolling && !isMobile && !prefersReducedMotion.matches) {
-        const spawns = Math.floor(scrollFlame.width / 160);
+      // 1. Enable additive blending for glowing fire masses
+      ctx.globalCompositeOperation = 'lighter';
+
+      // Spawn new particles while scrolling is active, capped at 150 to prevent runaway frames
+      if (isScrolling && !isMobile && !prefersReducedMotion.matches && particles.length < 150) {
+        // Dense spawn rate
+        const spawns = Math.floor(scrollFlame.width / 80);
         for (let i = 0; i < spawns; i++) {
           particles.push(new FlameParticle(currentDirection));
         }
@@ -1034,12 +1048,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
+      // Restore default composite operation
+      ctx.globalCompositeOperation = 'source-over';
+
       // Loop controls
       if (particles.length > 0 && !isMobile && !prefersReducedMotion.matches) {
         animationFrameId = requestAnimationFrame(renderLoop);
       } else {
         loopRunning = false;
-        ctx.shadowBlur = 0;
         ctx.clearRect(0, 0, scrollFlame.width, scrollFlame.height);
         scrollFlame.classList.remove('active');
       }
